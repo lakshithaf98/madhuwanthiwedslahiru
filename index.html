@@ -227,7 +227,7 @@
 </head>
 <body class="antialiased min-h-screen flex justify-center items-center relative overflow-x-hidden">
 
-  <!-- ================= STAGE 0: LOADING SCREEN (Holds until Video & Images are 100% cached) ================= -->
+  <!-- ================= STAGE 0: LOADING SCREEN ================= -->
   <div id="screen-loader" class="screen fixed inset-0 bg-[#FAF9F6] z-50 flex flex-col justify-center items-center gap-3">
     <div class="text-[#C28D92] text-4xl animate-heart">♥</div>
     <p class="text-[10px] uppercase tracking-[0.3em] text-[#738C78] font-semibold">Loading Love...</p>
@@ -261,8 +261,10 @@
 
   <!-- ================= STAGE 2: FULL-SCREEN VIDEO REVEAL SCREEN ================= -->
   <div id="screen-video" class="screen hidden fixed inset-0 bg-black z-40 flex flex-col justify-center items-center">
-    <!-- Inline plays, muted during load so autoplay is never blocked by browser -->
-    <video id="introVideo" class="w-full h-full object-cover" playsinline webkit-playsinline></video>
+    <!-- video optimized with playsinline and direct stream caching -->
+    <video id="introVideo" class="w-full h-full object-cover" playsinline webkit-playsinline preload="auto">
+      <source src="https://www.dropbox.com/scl/fi/eiz1t3xnleyc2z581f60p/Project-24.webm?rlkey=hda8bejt3bpbagbqhmzpn9r6z&st=jombidkv&raw=1" type="video/webm">
+    </video>
   </div>
 
   <!-- ================= STAGE 3: CALENDAR VIEW ================= -->
@@ -368,7 +370,7 @@
         </div>
       </div>
 
-      <!-- Event Schedule (With perfectly aligned times) -->
+      <!-- Event Schedule -->
       <div class="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-md border border-[#D5DDD7] scroll-animate">
         <div class="text-center mb-6">
           <p class="text-[10px] tracking-[0.2em] uppercase text-[#738C78] font-bold mb-1">Wedding Day</p>
@@ -509,7 +511,6 @@
   </div>
 
   <script>
-    // 0. Parse URL params for Guest Personalization (?name=Mr.+Kamal)
     function checkGuestName() {
       const urlParams = new URLSearchParams(window.location.search);
       const guestName = urlParams.get('name');
@@ -523,7 +524,6 @@
       }
     }
 
-    // 1. Dynamic Falling Stars/Hearts
     function createPetals() {
       const container = document.getElementById('petals-container');
       const symbols = ['✨', '🤍'];
@@ -548,7 +548,6 @@
       }
     }
 
-    // 2. Scroll Animations Observer
     function initScrollAnimations() {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -563,7 +562,6 @@
       });
     }
 
-    // 3. Screen Switching Flow
     const screenLoader = document.getElementById('screen-loader');
     const envelopeWrapper = document.getElementById('envelopeWrapper');
     const envelopeSeal = document.getElementById('envelopeSeal');
@@ -594,8 +592,6 @@
       }, hideElem ? 800 : 0);
     }
 
-    // Cache & Preload Assets (Direct Video Blob Download + Image Preloading)
-    const VIDEO_URL = "https://www.dropbox.com/scl/fi/eiz1t3xnleyc2z581f60p/Project-24.webm?rlkey=hda8bejt3bpbagbqhmzpn9r6z&st=jombidkv&raw=1";
     const essentialImages = [
       'https://lh3.googleusercontent.com/d/1FGK7xmjznjbTY9P3P_oYR1TIIZIw-5Nw',
       'https://lh3.googleusercontent.com/d/1c66jfwxXzlSLyT3_DaX9Bk0PiGuKRsIE',
@@ -604,7 +600,6 @@
     ];
 
     function preloadAllAssets() {
-      // 1. Preload Images
       const imgPromises = essentialImages.map(src => {
         return new Promise(resolve => {
           const img = new Image();
@@ -614,32 +609,24 @@
         });
       });
 
-      // 2. Fetch Video into Memory Blob so it is 100% pre-buffered
-      const videoPromise = fetch(VIDEO_URL)
-        .then(response => {
-          if (!response.ok) throw new Error("Video network error");
-          return response.blob();
-        })
-        .then(blob => {
-          const blobUrl = URL.createObjectURL(blob);
-          introVideo.src = blobUrl;
-          return new Promise(res => {
-            introVideo.oncanplaythrough = () => res();
-            introVideo.load();
-          });
-        })
-        .catch(err => {
-          console.warn("Direct blob preload fallback:", err);
-          // Fallback direct stream if CORS/network prevents blob fetch
-          introVideo.src = VIDEO_URL;
+      // Warm-up video directly in browser engine
+      const videoReadyPromise = new Promise(resolve => {
+        if (!introVideo) return resolve();
+        if (introVideo.readyState >= 2) {
+          resolve();
+        } else {
+          introVideo.addEventListener('loadeddata', resolve, { once: true });
+          introVideo.addEventListener('canplay', resolve, { once: true });
+          introVideo.addEventListener('error', resolve, { once: true });
           introVideo.load();
-        });
+        }
+      });
 
-      const minTimer = new Promise(resolve => setTimeout(resolve, 1800));
-      const maxTimeout = new Promise(resolve => setTimeout(resolve, 8000)); // Safety fallback
+      const minTimer = new Promise(resolve => setTimeout(resolve, 2000));
+      const maxTimeout = new Promise(resolve => setTimeout(resolve, 6000));
 
       Promise.race([
-        Promise.all([...imgPromises, videoPromise, minTimer]),
+        Promise.all([...imgPromises, videoReadyPromise, minTimer]),
         maxTimeout
       ]).then(() => {
         showScreen(screenLoader, envelopeWrapper);
@@ -651,20 +638,21 @@
       if (hasOpened) return;
       hasOpened = true;
 
-      // Play Background Audio
-      bgMusic.play().catch(err => console.log("Audio autoplay restriction:", err));
+      // Audio warmup
+      bgMusic.play().catch(err => console.log(err));
 
-      // Trigger 3D Opening Fold
+      // Video Warmup: start playing immediately in background while envelope unfolds
+      introVideo.play().catch(err => console.log("Video prep:", err));
+
+      // Envelope fold animation
       envelopeWrapper.classList.add('open-envelope');
 
-      // Video screen reveal - plays instantaneously with zero buffering
+      // Seamless switch without black flicker
       setTimeout(() => {
         showScreen(null, screenVideo);
-        introVideo.play().catch(err => console.log("Video autoplay restriction:", err));
-      }, 900);
+      }, 750);
     }
 
-    // Transition automatically from Full-Screen Video to Calendar -> Story -> Main Feed when video ends
     function transitionAfterVideo() {
       showScreen(screenVideo, screenCalendar);
 
@@ -690,7 +678,7 @@
       preloadAllAssets();
     });
 
-    // 4. Live Countdown (Target: Jan 21, 2027, 08:30 AM)
+    // Countdown logic
     const targetDate = new Date("January 21, 2027 08:30:00").getTime();
 
     setInterval(() => {
@@ -710,7 +698,7 @@
       }
     }, 1000);
 
-    // 5. RSVP Submission Logic
+    // RSVP Form Logic
     const rsvpForm = document.getElementById('rsvpForm');
     const rsvpSuccess = document.getElementById('rsvpSuccess');
     const submitBtn = document.getElementById('submitBtn');
