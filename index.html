@@ -450,7 +450,7 @@
               <label class="block text-xs font-bold text-[#5B705F] uppercase tracking-wider mb-1">Adults</label>
               <input type="number" id="adultsInput" min="0" max="10" value="1" required class="w-full px-4 py-3 rounded-xl border border-[#D5DDD7] focus:outline-none focus:border-[#738C78] text-sm bg-[#F9FBF9] font-medium">
             </div>
-            <div >
+            <div>
               <label class="block text-xs font-bold text-[#5B705F] uppercase tracking-wider mb-1">Children</label>
               <input type="number" id="childrenInput" min="0" max="10" value="0" required class="w-full px-4 py-3 rounded-xl border border-[#D5DDD7] focus:outline-none focus:border-[#738C78] text-sm bg-[#F9FBF9] font-medium">
             </div>
@@ -563,6 +563,47 @@
       });
     }
 
+    // Auto Scroll Logic
+    let autoScrollTimer = null;
+    let isAutoScrolling = false;
+
+    function startAutoScroll() {
+      // 2.5 seconds wait after main page appears
+      autoScrollTimer = setTimeout(() => {
+        isAutoScrolling = true;
+        
+        const scrollStep = () => {
+          if (!isAutoScrolling) return;
+
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          if (window.scrollY < maxScroll - 5) {
+            window.scrollBy({ top: 1.2, behavior: 'auto' });
+            requestAnimationFrame(scrollStep);
+          } else {
+            isAutoScrolling = false;
+          }
+        };
+
+        requestAnimationFrame(scrollStep);
+      }, 2500);
+    }
+
+    function stopAutoScroll() {
+      if (isAutoScrolling || autoScrollTimer) {
+        isAutoScrolling = false;
+        clearTimeout(autoScrollTimer);
+      }
+    }
+
+    // Stop auto-scroll if guest manually scrolls or touches the screen
+    window.addEventListener('wheel', stopAutoScroll, { passive: true });
+    window.addEventListener('touchstart', stopAutoScroll, { passive: true });
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowDown', 'ArrowUp', 'Space', 'PageDown'].includes(e.code)) {
+        stopAutoScroll();
+      }
+    });
+
     const screenLoader = document.getElementById('screen-loader');
     const envelopeWrapper = document.getElementById('envelopeWrapper');
     const envelopeSeal = document.getElementById('envelopeSeal');
@@ -589,6 +630,7 @@
         if (showElem === screenMain) {
           setTimeout(initScrollAnimations, 100);
           createPetals(); 
+          startAutoScroll();
         }
       }, hideElem ? 800 : 0);
     }
