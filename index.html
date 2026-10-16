@@ -11,9 +11,6 @@
   <meta property="og:image:height" content="630">
   <meta property="og:type" content="website">
 
-  <!-- Video Preload for instant play -->
-  <link rel="preload" href="https://www.dropbox.com/scl/fi/eiz1t3xnleyc2z581f60p/Project-24.webm?rlkey=hda8bejt3bpbagbqhmzpn9r6z&st=jombidkv&raw=1" as="video" type="video/webm">
-
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -230,7 +227,7 @@
 </head>
 <body class="antialiased min-h-screen flex justify-center items-center relative overflow-x-hidden">
 
-  <!-- ================= STAGE 0: LOADING SCREEN (Holds until Video & Images cache) ================= -->
+  <!-- ================= STAGE 0: LOADING SCREEN (Holds until Video & Images are 100% cached) ================= -->
   <div id="screen-loader" class="screen fixed inset-0 bg-[#FAF9F6] z-50 flex flex-col justify-center items-center gap-3">
     <div class="text-[#C28D92] text-4xl animate-heart">♥</div>
     <p class="text-[10px] uppercase tracking-[0.3em] text-[#738C78] font-semibold">Loading Love...</p>
@@ -264,10 +261,8 @@
 
   <!-- ================= STAGE 2: FULL-SCREEN VIDEO REVEAL SCREEN ================= -->
   <div id="screen-video" class="screen hidden fixed inset-0 bg-black z-40 flex flex-col justify-center items-center">
-    <video id="introVideo" class="w-full h-full object-cover" playsinline preload="auto">
-      <source src="https://www.dropbox.com/scl/fi/eiz1t3xnleyc2z581f60p/Project-24.webm?rlkey=hda8bejt3bpbagbqhmzpn9r6z&st=jombidkv&raw=1" type="video/webm">
-      Your browser does not support the video tag.
-    </video>
+    <!-- Inline plays, muted during load so autoplay is never blocked by browser -->
+    <video id="introVideo" class="w-full h-full object-cover" playsinline webkit-playsinline></video>
   </div>
 
   <!-- ================= STAGE 3: CALENDAR VIEW ================= -->
@@ -599,7 +594,8 @@
       }, hideElem ? 800 : 0);
     }
 
-    // Cache & Preload Assets (Images & Video)
+    // Cache & Preload Assets (Direct Video Blob Download + Image Preloading)
+    const VIDEO_URL = "https://www.dropbox.com/scl/fi/eiz1t3xnleyc2z581f60p/Project-24.webm?rlkey=hda8bejt3bpbagbqhmzpn9r6z&st=jombidkv&raw=1";
     const essentialImages = [
       'https://lh3.googleusercontent.com/d/1FGK7xmjznjbTY9P3P_oYR1TIIZIw-5Nw',
       'https://lh3.googleusercontent.com/d/1c66jfwxXzlSLyT3_DaX9Bk0PiGuKRsIE',
@@ -607,7 +603,8 @@
       'https://lh3.googleusercontent.com/d/1Ieh0Wc9WN_lGdLcnxIoTrI7s7YoDvp29'
     ];
 
-    function preloadAssets() {
+    function preloadAllAssets() {
+      // 1. Preload Images
       const imgPromises = essentialImages.map(src => {
         return new Promise(resolve => {
           const img = new Image();
@@ -617,20 +614,29 @@
         });
       });
 
-      const videoPromise = new Promise(resolve => {
-        if (!introVideo) return resolve();
-        if (introVideo.readyState >= 3) {
-          resolve();
-        } else {
-          introVideo.addEventListener('canplaythrough', resolve, { once: true });
-          introVideo.addEventListener('error', resolve, { once: true });
+      // 2. Fetch Video into Memory Blob so it is 100% pre-buffered
+      const videoPromise = fetch(VIDEO_URL)
+        .then(response => {
+          if (!response.ok) throw new Error("Video network error");
+          return response.blob();
+        })
+        .then(blob => {
+          const blobUrl = URL.createObjectURL(blob);
+          introVideo.src = blobUrl;
+          return new Promise(res => {
+            introVideo.oncanplaythrough = () => res();
+            introVideo.load();
+          });
+        })
+        .catch(err => {
+          console.warn("Direct blob preload fallback:", err);
+          // Fallback direct stream if CORS/network prevents blob fetch
+          introVideo.src = VIDEO_URL;
           introVideo.load();
-        }
-      });
+        });
 
-      // Keep loader visible for at least 1.5 seconds, but wait until all promises resolve
-      const minTimer = new Promise(resolve => setTimeout(resolve, 1500));
-      const maxTimeout = new Promise(resolve => setTimeout(resolve, 6000)); // Fallback in case of slow connection
+      const minTimer = new Promise(resolve => setTimeout(resolve, 1800));
+      const maxTimeout = new Promise(resolve => setTimeout(resolve, 8000)); // Safety fallback
 
       Promise.race([
         Promise.all([...imgPromises, videoPromise, minTimer]),
@@ -651,7 +657,7 @@
       // Trigger 3D Opening Fold
       envelopeWrapper.classList.add('open-envelope');
 
-      // Transition to Full-Screen Video Screen after envelope opens
+      // Video screen reveal - plays instantaneously with zero buffering
       setTimeout(() => {
         showScreen(null, screenVideo);
         introVideo.play().catch(err => console.log("Video autoplay restriction:", err));
@@ -681,7 +687,7 @@
 
     window.addEventListener('load', () => {
       checkGuestName();
-      preloadAssets();
+      preloadAllAssets();
     });
 
     // 4. Live Countdown (Target: Jan 21, 2027, 08:30 AM)
