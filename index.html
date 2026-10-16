@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theja & Lahiru - Wedding Invitation</title>
+  <meta property="og:title" content="💌 Wedding Invitation | Theja & Lahiru">
+  <meta property="og:description" content="We warmly invite you to celebrate our wedding! Tap to open your invitation.">
+  <meta property="og:image" content="https://lh3.googleusercontent.com/d/1Ieh0Wc9WN_lGdLcnxIoTrI7s7YoDvp29">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .font-script { font-family: 'Great Vibes', cursive; }
+    .font-serif { font-family: 'Playfair Display', serif; }
+    .font-sans { font-family: 'Montserrat', sans-serif; }
+    
+    /* Screen transition effects */
+    .screen {
+      transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    }
+    .fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+    }
+    .fade-in {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* Heart Pulse Animation */
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.25); opacity: 1; }
+    }
+    .animate-heart { animation: pulse-slow 1.5s infinite ease-in-out; }
+
+    /* Flower Falling Animation */
+    .petal {
+      position: fixed;
+      top: -50px;
+      user-select: none;
+      pointer-events: none;
+      z-index: 5;
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(-50px) rotate(0deg) translateX(0px);
+        opacity: 0;
+      }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.8; }
+      100% {
+        transform: translateY(105vh) rotate(360deg) translateX(50px);
+        opacity: 0;
+      }
+    }
+
+    /* Card Scroll Fade-in Animation */
+    .scroll-animate {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .scroll-animate.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="font-sans bg-[#FAF9F6] text-[#4A5D4E] antialiased min-h-screen flex justify-center items-center relative overflow-x-hidden">
+
+  <!-- Background Audio (Hidden) -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="https://files.catbox.moe/8593xd.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Dynamic Falling Elements Container -->
+  <div id="petals-container" class="fixed inset-0 pointer-events-none overflow-hidden z-10"></div>
+
+  <!-- ================= STAGE 1: LOADING SCREEN ================= -->
+  <div id="screen-loader" class="screen fixed inset-0 bg-[#FAF9F6] z-50 flex flex-col justify-center items-center gap-3">
+    <div class="text-[#D4A3A7] text-4xl animate-heart">♥</div>
+    <p class="text-[10px] uppercase tracking-[0.3em] text-[#9AA89D]">Loading Love...</p>
+  </div>
+
+  <!-- ================= STAGE 2: WELCOME SCREEN ================= -->
+  <div id="screen-welcome" class="screen hidden fixed inset-0 bg-[#FAF9F6] z-40 flex flex-col justify-center items-center p-6 text-center max-w-md mx-auto">
+    
+    <div class="bg-[#E8DFE1]/95 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-md border border-[#D4B5B9] mb-8 w-full">
+      <h3 id="guestGreeting" class="font-serif text-lg text-[#5B6E60] font-semibold mb-1">Dear Guest,</h3>
+      <p class="text-xs text-[#7A8A7E] leading-relaxed">We warmly invite you to share in the celebration of our wedding day.</p>
+    </div>
+
+    <p class="text-[11px] tracking-[0.3em] uppercase text-[#9AA89D] mb-2 mt-4 font-medium">The Wedding Of</p>
+    <h1 class="font-serif italic text-4xl md:text-5xl text-[#5B6E60] mb-2">Theja Madhuwanthi</h1>
+    <span class="font-script text-4xl text-[#D4A3A7]">&</span>
+    <h1 class="font-serif italic text-4xl md:text-5xl text-[#5B6E60] mt-1 mb-12">Lahiru Garatte</h1>
+
+    <button id="playBtn" class="group relative flex flex-col items-center cursor-pointer focus:outline-none z-20">
+      <div class="w-16 h-16 bg-[#8CA090] hover:bg-[#738777] text-white rounded-full flex items-center justify-center shadow-lg transition transform group-hover:scale-110 group-hover:shadow-sage-200/50 mb-4 duration-300">
+        <svg class="w-6 h-6 ml-1 fill-current animate-pulse" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <span class="text-[11px] tracking-[0.2em] uppercase text-[#738777] font-semibold group-hover:text-[#5B6E60] transition">Tap to open our invitation</span>
+    </button>
+  </div>
+
+  <!-- ================= STAGE 3: CALENDAR VIEW ================= -->
+  <div id="screen-calendar" class="screen hidden fixed inset-0 bg-[#FAF9F6] z-30 flex flex-col justify-center items-center p-6 text-center max-w-md mx-auto">
+    <p class="text-xs tracking-[0.3em] uppercase text-[#9AA89D] mb-1 font-semibold">Save The Date</p>
+    <h2 class="font-serif italic text-3xl text-[#5B6E60]">Theja & Lahiru</h2>
+    <p class="text-xs tracking-[0.2em] uppercase text-[#5B6E60] font-medium mt-1 mb-8">January 2027</p>
+
+    <div class="bg-white px-6 py-8 rounded-3xl shadow-sm border border-[#DFE5E0] w-full max-w-xs mb-8 transform hover:scale-105 transition duration-500">
+      <div class="grid grid-cols-7 gap-y-4 text-center text-xs font-medium text-gray-400 mb-4">
+        <span class="text-[#D4A3A7] font-bold">S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      </div>
+      <div class="grid grid-cols-7 gap-y-4 text-center text-sm text-gray-700 items-center">
+        <!-- Jan 2027 Calendar (Starts on Friday) -->
+        <span></span><span></span><span></span><span></span><span></span><span>1</span><span>2</span>
+        <span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+        <span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
+        <span>17</span><span>18</span><span>19</span><span>20</span>
+        <div class="flex justify-center items-center">
+          <span class="w-8 h-8 bg-[#D4A3A7] text-white rounded-full flex items-center justify-center text-xs shadow-md animate-bounce">21</span>
+        </div>
+        <span>22</span><span>23</span>
+        <span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span>
+        <span>31</span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <p class="font-serif italic text-sm text-[#7A8A7E] max-w-xs leading-relaxed">We look forward to celebrating our special day with you</p>
+  </div>
+
+  <!-- ================= STAGE 4: OUR STORY VIEW ================= -->
+  <div id="screen-story" class="screen hidden fixed inset-0 z-20 flex flex-col justify-center items-center p-6 text-center bg-cover bg-center" style="background-image: linear-gradient(rgba(91, 110, 96, 0.7), rgba(91, 110, 96, 0.9)), url('https://lh3.googleusercontent.com/d/1Ieh0Wc9WN_lGdLcnxIoTrI7s7YoDvp29');">
+    <div class="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl max-w-sm w-full text-white shadow-2xl transform hover:scale-105 transition duration-500">
+      <p class="text-[11px] tracking-[0.3em] uppercase text-[#E8D6D8] font-semibold mb-6">Our Story</p>
+      <p class="font-serif italic text-lg leading-relaxed mb-6">
+        "Two hearts brought together by destiny, ready to write our forever chapter."
+      </p>
+      <div class="w-12 h-[1px] bg-white/40 mx-auto mb-6"></div>
+      <h2 class="font-serif text-2xl font-medium tracking-wide">Theja & Lahiru</h2>
+    </div>
+  </div>
+
+  <!-- ================= STAGE 5: MAIN DETAILS FEED ================= -->
+  <div id="screen-main" class="screen hidden w-full relative">
+    
+    <div class="fixed inset-0 z-0 bg-cover bg-center" style="background-image: linear-gradient(rgba(250, 249, 246, 0.85), rgba(250, 249, 246, 0.95)), url('https://lh3.googleusercontent.com/d/1Ieh0Wc9WN_lGdLcnxIoTrI7s7YoDvp29');"></div>
+
+    <div class="relative z-10 w-full max-w-md mx-auto py-12 px-5 space-y-8">
+      
+      <div class="text-center mb-10 scroll-animate">
+        <p class="text-[10px] tracking-[0.3em] uppercase text-[#9AA89D] mb-2 font-medium">The Wedding Of</p>
+        <h1 class="font-serif italic text-4xl text-[#5B6E60]">Theja Madhuwanthi</h1>
+        <span class="font-script text-4xl text-[#D4A3A7] block my-1">&</span>
+        <h1 class="font-serif italic text-4xl text-[#5B6E60] mb-4">Lahiru Garatte</h1>
+        <p class="text-xs text-[#7A8A7E] leading-relaxed max-w-xs mx-auto font-medium">
+          Together with our loving parents, warmly request the honour of your presence to celebrate our marriage.
+        </p>
+      </div>
+
+      <!-- Parents Section -->
+      <div class="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-[#DFE5E0] text-center space-y-6 scroll-animate">
+        <div>
+          <p class="text-[10px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold mb-1.5">Daughter Of</p>
+          <p class="font-serif italic text-base text-[#4A5D4E]">Mr. Dhammage Rathnasiri<br>&<br>Mrs. Anusha Samanthi</p>
+        </div>
+        <div class="text-[#D4A3A7] font-script text-3xl">&</div>
+        <div>
+          <p class="text-[10px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold mb-1.5">Son Of</p>
+          <p class="font-serif italic text-base text-[#4A5D4E]">late Mr. Ariyapala Jayasinghe<br>&<br>Mrs. Chandra Mohotti</p>
+        </div>
+      </div>
+
+      <!-- Countdown -->
+      <div class="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-[#DFE5E0] text-center scroll-animate">
+        <p class="text-[11px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold mb-1">Until We Say 'I Do'</p>
+        <p class="text-xs text-[#7A8A7E] mb-6 font-light">Countdown to Our Special Day</p>
+        
+        <div id="countdown" class="flex justify-center gap-3">
+          <div class="bg-gradient-to-br from-[#8CA090] to-[#738777] text-white p-3 rounded-2xl w-16 shadow-lg">
+            <span id="days" class="block text-2xl font-serif font-bold">00</span>
+            <span class="text-[9px] uppercase tracking-wider opacity-80">Days</span>
+          </div>
+          <div class="bg-gradient-to-br from-[#8CA090] to-[#738777] text-white p-3 rounded-2xl w-16 shadow-lg">
+            <span id="hours" class="block text-2xl font-serif font-bold">00</span>
+            <span class="text-[9px] uppercase tracking-wider opacity-80">Hrs</span>
+          </div>
+          <div class="bg-gradient-to-br from-[#8CA090] to-[#738777] text-white p-3 rounded-2xl w-16 shadow-lg">
+            <span id="minutes" class="block text-2xl font-serif font-bold">00</span>
+            <span class="text-[9px] uppercase tracking-wider opacity-80">Min</span>
+          </div>
+          <div class="bg-gradient-to-br from-[#8CA090] to-[#738777] text-white p-3 rounded-2xl w-16 shadow-lg">
+            <span id="seconds" class="block text-2xl font-serif font-bold">00</span>
+            <span class="text-[9px] uppercase tracking-wider opacity-80">Sec</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Schedule -->
+      <div class="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-[#DFE5E0] scroll-animate">
+        <div class="text-center mb-6">
+          <p class="text-[10px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold mb-1">Wedding Day</p>
+          <h3 class="font-serif italic text-2xl text-[#5B6E60]">Thursday, Jan 21, 2027</h3>
+          <p class="text-xs text-[#738777] mt-1 font-medium">From 8:30 a.m. to 4:00 p.m.</p>
+        </div>
+        <div class="border-t border-[#F2F5F3] pt-6 space-y-3">
+          <p class="text-[10px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold text-center mb-4">Event Schedule</p>
+          
+          <div class="flex justify-between items-center text-sm bg-[#F2F5F3] p-3 rounded-xl border border-[#DFE5E0]">
+            <span class="font-serif text-[#5B6E60] flex items-center gap-2 font-medium">✨ Ceremony Begins</span>
+            <span class="font-semibold text-[#4A5D4E] text-xs bg-white px-2.5 py-1 rounded-md shadow-sm">8:30 AM</span>
+          </div>
+
+          <div class="flex justify-between items-center text-sm bg-[#F2F5F3] p-3 rounded-xl border border-[#DFE5E0]">
+            <span class="font-serif text-[#5B6E60] flex items-center gap-2 font-medium">🌸 The Poruwa Ceremony</span>
+            <span class="font-semibold text-[#4A5D4E] text-xs bg-white px-2.5 py-1 rounded-md shadow-sm">10:30 AM</span>
+          </div>
+
+          <div class="flex justify-between items-center text-sm bg-[#F2F5F3] p-3 rounded-xl border border-[#DFE5E0]">
+            <span class="font-serif text-[#5B6E60] flex items-center gap-2 font-medium">🥂 A Toast To Us (Cake & Champagne)</span>
+            <span class="font-semibold text-[#4A5D4E] text-xs bg-white px-2.5 py-1 rounded-md shadow-sm">11:00 AM</span>
+          </div>
+
+          <div class="flex justify-between items-center text-sm bg-[#F2F5F3] p-3 rounded-xl border border-[#DFE5E0]">
+            <span class="font-serif text-[#5B6E60] flex items-center gap-2 font-medium">🍸 The Wedding Bar</span>
+            <span class="font-semibold text-[#4A5D4E] text-xs bg-white px-2.5 py-1 rounded-md shadow-sm">12:00 PM</span>
+          </div>
+
+          <div class="flex justify-between items-center text-sm bg-[#F2F5F3] p-3 rounded-xl border border-[#DFE5E0]">
+            <span class="font-serif text-[#5B6E60] flex items-center gap-2 font-medium">🍽️ Lunch</span>
+            <span class="font-semibold text-[#4A5D4E] text-xs bg-white px-2.5 py-1 rounded-md shadow-sm">1:00 PM</span>
+          </div>
+
+          <div class="flex justify-between items-center text-sm bg-[#F2F5F3] p-3 rounded-xl border border-[#DFE5E0]">
+            <span class="font-serif text-[#5B6E60] flex items-center gap-2 font-medium">✨ Going Away</span>
+            <span class="font-semibold text-[#4A5D4E] text-xs bg-white px-2.5 py-1 rounded-md shadow-sm">3:30 PM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Venue Section -->
+      <div class="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-[#DFE5E0] text-center scroll-animate">
+        <p class="text-[10px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold mb-2">Venue</p>
+        <h3 class="font-serif italic text-3xl text-[#5B6E60] mb-1">Avenra Beach Hotel</h3>
+        <p class="text-sm font-medium text-[#738777] mb-6">Hikkaduwa</p>
+        <a href="https://maps.google.com/?q=Avenra+Beach+Hotel+Hikkaduwa" target="_blank" class="inline-block w-full bg-gradient-to-r from-[#8CA090] to-[#738777] hover:opacity-95 text-white text-xs font-semibold py-4 px-6 rounded-2xl shadow-lg transition tracking-widest uppercase transform hover:-translate-y-0.5 duration-300">
+          📍 Open in Google Maps
+        </a>
+      </div>
+
+      <!-- RSVP Form -->
+      <div class="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-[#DFE5E0] scroll-animate">
+        <div class="text-center mb-6">
+          <p class="text-[10px] tracking-[0.2em] uppercase text-[#9AA89D] font-semibold mb-1">Are You Attending?</p>
+          <h3 class="font-serif text-2xl text-[#5B6E60]">RSVP</h3>
+          <p class="text-xs text-[#7A8A7E] mt-1">Please confirm your presence</p>
+        </div>
+
+        <form id="rsvpForm" class="space-y-4 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-[#7A8A7E] uppercase tracking-wider mb-1">Your Full Name</label>
+            <input type="text" id="rsvpNameInput" required placeholder="e.g. Kasun Perera" class="w-full px-4 py-3 rounded-xl border border-[#DFE5E0] focus:outline-none focus:border-[#8CA090] text-sm bg-[#F9FBF9]">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-[#7A8A7E] uppercase tracking-wider mb-1">Will You Attend?</label>
+            <select id="attendanceSelect" required class="w-full px-4 py-3 rounded-xl border border-[#DFE5E0] focus:outline-none focus:border-[#8CA090] text-sm bg-[#F9FBF9]">
+              <option value="Attending">Yes, I/We will be there! 🎉</option>
+              <option value="Not Attending">Sorry, can't make it 😢</option>
+            </select>
+          </div>
+
+          <div class="space-y-4 text-left">
+            <div>
+              <label class="block text-xs font-semibold text-[#7A8A7E] uppercase tracking-wider mb-1">Adults</label>
+              <input type="number" id="adultsInput" min="0" max="10" value="1" required class="w-full px-4 py-3 rounded-xl border border-[#DFE5E0] focus:outline-none focus:border-[#8CA090] text-sm bg-[#F9FBF9]">
+            </div>
+            <div >
+              <label class="block text-xs font-semibold text-[#7A8A7E] uppercase tracking-wider mb-1">Children</label>
+              <input type="number" id="childrenInput" min="0" max="10" value="0" required class="w-full px-4 py-3 rounded-xl border border-[#DFE5E0] focus:outline-none focus:border-[#8CA090] text-sm bg-[#F9FBF9]">
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-[#8CA090] to-[#738777] hover:opacity-95 text-white font-semibold py-3.5 rounded-xl text-xs tracking-widest uppercase shadow-md transition mt-2">
+            Send RSVP
+          </button>
+        </form>
+
+        <div id="rsvpSuccess" class="hidden text-center py-6 bg-[#F2F5F3] rounded-2xl border border-[#DFE5E0]">
+          <div class="text-2xl mb-2">🎉</div>
+          <h4 class="font-serif text-lg text-[#5B6E60] font-semibold mb-1">Thank You!</h4>
+          <p class="text-xs text-[#738777]">Your RSVP has been recorded. We can't wait to celebrate with you!</p>
+        </div>
+      </div>
+
+      <!-- Inquiries & Contacts -->
+      <div class="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-[#DFE5E0] text-center scroll-animate">
+        <h3 class="font-serif text-lg text-[#5B6E60] mb-1">Inquiries & Wishes</h3>
+        <p class="text-xs text-[#7A8A7E] mb-6">Reach out to us directly</p>
+        
+        <div class="space-y-4">
+          <!-- Bride Contact -->
+          <div class="p-4 rounded-2xl bg-[#F2F5F3] border border-[#DFE5E0]">
+            <p class="font-serif text-sm font-bold text-[#4A5D4E] mb-2">Theja (Bride)</p>
+            <div class="flex gap-2 justify-center">
+              <a href="tel:+94774069477" class="flex-1 bg-white hover:bg-[#EAEFEA] text-[#4A5D4E] border border-[#DFE5E0] text-xs py-2 px-3 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-sm transition">
+                <span>📞</span> Call
+              </a>
+              <a href="https://wa.me/94774069477?text=Hi%20Theja,%20congratulations%20on%20your%20wedding!" target="_blank" class="flex-1 bg-[#8CA090] hover:bg-[#738777] text-white text-xs py-2 px-3 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-sm transition">
+                <span>💬</span> WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <!-- Groom Contact -->
+          <div class="p-4 rounded-2xl bg-[#F2F5F3] border border-[#DFE5E0]">
+            <p class="font-serif text-sm font-bold text-[#4A5D4E] mb-2">Lahiru (Groom)</p>
+            <div class="flex gap-2 justify-center">
+              <a href="tel:+94777227081" class="flex-1 bg-white hover:bg-[#EAEFEA] text-[#4A5D4E] border border-[#DFE5E0] text-xs py-2 px-3 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-sm transition">
+                <span>📞</span> Call
+              </a>
+              <a href="https://wa.me/94777227081?text=Hi%20Lahiru,%20congratulations%20on%20your%20wedding!" target="_blank" class="flex-1 bg-[#8CA090] hover:bg-[#738777] text-white text-xs py-2 px-3 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-sm transition">
+                <span>💬</span> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center space-y-2 pb-12 pt-4 scroll-animate">
+        <p class="font-serif italic text-xs text-[#7A8A7E]">Thank you for being part of our special journey.</p>
+        <p class="font-serif italic text-2xl text-[#5B6E60]">With Love,<br>Theja & Lahiru</p>
+        <p class="text-xs text-[#D4A3A7] font-medium mt-2 animate-pulse">♥ Forever Begins Here ♥</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // 0. PARSE URL PARAMETERS (Get Guest Name from Link)
+    function checkGuestName() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const guestName = urlParams.get('name');
+      
+      if (guestName) {
+        const cleanName = decodeURIComponent(guestName.replace(/\+/g, ' '));
+        document.getElementById('guestGreeting').innerText = `Dear ${cleanName},`;
+        const rsvpInput = document.getElementById('rsvpNameInput');
+        if (rsvpInput) rsvpInput.value = cleanName;
+      }
+    }
+
+    // 1. Dynamic Falling Elements Generator (Stars and Hearts Only)
+    function createPetals() {
+      const container = document.getElementById('petals-container');
+      const symbols = ['✨', '🤍'];
+      const totalPetals = 15;
+
+      for (let i = 0; i < totalPetals; i++) {
+        const petal = document.createElement('span');
+        petal.classList.add('petal');
+        petal.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        
+        const size = Math.random() * 15 + 10;
+        const left = Math.random() * 100;
+        const duration = Math.random() * 8 + 6;
+        const delay = Math.random() * 5;
+        
+        petal.style.fontSize = `${size}px`;
+        petal.style.left = `${left}%`;
+        petal.style.animationDuration = `${duration}s`;
+        petal.style.animationDelay = `${delay}s`;
+        
+        container.appendChild(petal);
+      }
+    }
+
+    // 2. Scroll Fade-In Observer
+    function initScrollAnimations() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('show');
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.scroll-animate').forEach(el => {
+        observer.observe(el);
+      });
+    }
+
+    // 3. Screen Switching Helper
+    const screenLoader = document.getElementById('screen-loader');
+    const screenWelcome = document.getElementById('screen-welcome');
+    const screenCalendar = document.getElementById('screen-calendar');
+    const screenStory = document.getElementById('screen-story');
+    const screenMain = document.getElementById('screen-main');
+    const playBtn = document.getElementById('playBtn');
+    const bgMusic = document.getElementById('bg-music');
+
+    function showScreen(hideElem, showElem) {
+      if (hideElem) {
+        hideElem.classList.add('fade-out');
+        setTimeout(() => {
+          hideElem.classList.add('hidden');
+          hideElem.classList.remove('fade-out');
+        }, 800);
+      }
+      
+      setTimeout(() => {
+        showElem.classList.remove('hidden');
+        showElem.classList.add('fade-in');
+        
+        if (showElem === screenMain) {
+          setTimeout(initScrollAnimations, 100);
+          createPetals(); 
+        }
+      }, hideElem ? 800 : 0);
+    }
+
+    // 4. Initial Page Load Event
+    window.addEventListener('load', () => {
+      checkGuestName();
+      setTimeout(() => {
+        showScreen(screenLoader, screenWelcome);
+      }, 1800);
+    });
+
+    // 5. Play Button Sequence (Music + Transitions)
+    playBtn.addEventListener('click', () => {
+      bgMusic.play().catch(error => {
+        console.log("Auto-play was prevented by the browser:", error);
+      });
+
+      showScreen(screenWelcome, screenCalendar);
+      setTimeout(() => showScreen(screenCalendar, screenStory), 4000);
+      setTimeout(() => showScreen(screenStory, screenMain), 8000);
+    });
+
+    // 6. Live Countdown Timer (Target: Jan 21, 2027, 08:30 AM)
+    const targetDate = new Date("January 21, 2027 08:30:00").getTime();
+
+    setInterval(() => {
+      const now = new Date().getTime();
+      const diff = targetDate - now;
+
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('days').innerText = String(days).padStart(2, '0');
+        document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+      }
+    }, 1000);
+
+    // ================= 7. RSVP FORM SUBMISSION LOGIC =================
+    const rsvpForm = document.getElementById('rsvpForm');
+    const rsvpSuccess = document.getElementById('rsvpSuccess');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOLso_d5Dq6oEpc071JM6P8fhfbwdbmNHrRA5nFDXzgczk4_UpOUw9d_e_0jOQ_HLsbQ/exec"; 
+
+    rsvpForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      submitBtn.innerText = 'Sending...';
+      submitBtn.disabled = true;
+
+      const payload = {
+        event: "Wedding",
+        name: document.getElementById('rsvpNameInput').value,
+        status: document.getElementById('attendanceSelect').value,
+        adults: parseInt(document.getElementById('adultsInput').value) || 0,
+        children: parseInt(document.getElementById('childrenInput').value) || 0
+      };
+
+      if (GOOGLE_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+        setTimeout(() => {
+          rsvpForm.classList.add('hidden');
+          rsvpSuccess.classList.remove('hidden');
+        }, 1000);
+        return;
+      }
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.text())
+      .then(text => {
+        console.log("Response from server:", text);
+        rsvpForm.classList.add('hidden');
+        rsvpSuccess.classList.remove('hidden');
+      })
+      .catch(error => {
+        console.error('Error!', error.message);
+        alert('Something went wrong. Please try again!');
+        submitBtn.innerText = 'Send RSVP';
+        submitBtn.disabled = false;
+      });
+    });
+  </script>
+</body>
+</html>
