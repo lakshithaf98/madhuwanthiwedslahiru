@@ -43,6 +43,13 @@
     .font-serif { font-family: 'Playfair Display', serif; }
     .font-sans { font-family: 'Montserrat', sans-serif; }
 
+    /* Heart Pulse Animation */
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.25); opacity: 1; }
+    }
+    .animate-heart { animation: pulse-slow 1.5s infinite ease-in-out; }
+
     /* ================= ENVELOPE STYLES ================= */
     .envelope-wrapper {
       position: fixed;
@@ -223,6 +230,12 @@
 </head>
 <body class="antialiased min-h-screen flex justify-center items-center relative overflow-x-hidden">
 
+  <!-- ================= STAGE 0: LOADING SCREEN (Holds until Video & Images cache) ================= -->
+  <div id="screen-loader" class="screen fixed inset-0 bg-[#FAF9F6] z-50 flex flex-col justify-center items-center gap-3">
+    <div class="text-[#C28D92] text-4xl animate-heart">♥</div>
+    <p class="text-[10px] uppercase tracking-[0.3em] text-[#738C78] font-semibold">Loading Love...</p>
+  </div>
+
   <!-- Background Audio (Hidden) -->
   <audio id="bg-music" loop preload="auto">
     <source src="https://www.dropbox.com/scl/fi/61xbxbxlmyj18um1s9y5u/our-wedding-song-lkr-layama-piruna-nihatha-shalani-di_fBsOUQ1i.mp3?rlkey=jm8evna1nbwl4eeleggj8tlsx&st=l4l71gkt&raw=1" type="audio/mpeg">
@@ -232,7 +245,7 @@
   <div id="petals-container" class="fixed inset-0 pointer-events-none overflow-hidden z-20"></div>
 
   <!-- ================= STAGE 1: ENVELOPE OPENING SCREEN ================= -->
-  <div class="envelope-wrapper" id="envelopeWrapper">
+  <div class="envelope-wrapper hidden" id="envelopeWrapper">
     <div class="envelope-box">
       <!-- Upper flap fold -->
       <div class="envelope-up envelope-part"></div>
@@ -556,6 +569,7 @@
     }
 
     // 3. Screen Switching Flow
+    const screenLoader = document.getElementById('screen-loader');
     const envelopeWrapper = document.getElementById('envelopeWrapper');
     const envelopeSeal = document.getElementById('envelopeSeal');
     const screenVideo = document.getElementById('screen-video');
@@ -583,6 +597,47 @@
           createPetals(); 
         }
       }, hideElem ? 800 : 0);
+    }
+
+    // Cache & Preload Assets (Images & Video)
+    const essentialImages = [
+      'https://lh3.googleusercontent.com/d/1FGK7xmjznjbTY9P3P_oYR1TIIZIw-5Nw',
+      'https://lh3.googleusercontent.com/d/1c66jfwxXzlSLyT3_DaX9Bk0PiGuKRsIE',
+      'https://lh3.googleusercontent.com/d/11eoDhrukkl2mbRQxBfdcf2Z1CHVuBhaY',
+      'https://lh3.googleusercontent.com/d/1Ieh0Wc9WN_lGdLcnxIoTrI7s7YoDvp29'
+    ];
+
+    function preloadAssets() {
+      const imgPromises = essentialImages.map(src => {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.src = src;
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+
+      const videoPromise = new Promise(resolve => {
+        if (!introVideo) return resolve();
+        if (introVideo.readyState >= 3) {
+          resolve();
+        } else {
+          introVideo.addEventListener('canplaythrough', resolve, { once: true });
+          introVideo.addEventListener('error', resolve, { once: true });
+          introVideo.load();
+        }
+      });
+
+      // Keep loader visible for at least 1.5 seconds, but wait until all promises resolve
+      const minTimer = new Promise(resolve => setTimeout(resolve, 1500));
+      const maxTimeout = new Promise(resolve => setTimeout(resolve, 6000)); // Fallback in case of slow connection
+
+      Promise.race([
+        Promise.all([...imgPromises, videoPromise, minTimer]),
+        maxTimeout
+      ]).then(() => {
+        showScreen(screenLoader, envelopeWrapper);
+      });
     }
 
     let hasOpened = false;
@@ -624,12 +679,9 @@
       openEnvelope();
     });
 
-    // Start buffer and preload of video right away on page load
     window.addEventListener('load', () => {
       checkGuestName();
-      if (introVideo) {
-        introVideo.load();
-      }
+      preloadAssets();
     });
 
     // 4. Live Countdown (Target: Jan 21, 2027, 08:30 AM)
