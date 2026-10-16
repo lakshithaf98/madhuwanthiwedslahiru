@@ -11,6 +11,9 @@
   <meta property="og:image:height" content="630">
   <meta property="og:type" content="website">
 
+  <!-- Video Preload for instant play -->
+  <link rel="preload" href="https://www.dropbox.com/scl/fi/eiz1t3xnleyc2z581f60p/Project-24.webm?rlkey=hda8bejt3bpbagbqhmzpn9r6z&st=jombidkv&raw=1" as="video" type="video/webm">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -357,7 +360,7 @@
         </div>
       </div>
 
-      <!-- Event Schedule -->
+      <!-- Event Schedule (With perfectly aligned times) -->
       <div class="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-md border border-[#D5DDD7] scroll-animate">
         <div class="text-center mb-6">
           <p class="text-[10px] tracking-[0.2em] uppercase text-[#738C78] font-bold mb-1">Wedding Day</p>
@@ -369,32 +372,32 @@
           
           <div class="flex justify-between items-center text-sm bg-[#EBF0EC] p-3.5 rounded-xl border border-[#D5DDD7]">
             <span class="font-serif text-[#4A5E4F] flex items-center gap-2 font-bold">✨ Ceremony Begins</span>
-            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-3 py-1 rounded-md shadow-sm">8:30 AM</span>
+            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-2.5 py-1.5 rounded-md shadow-sm min-w-[78px] text-center">8:30 AM</span>
           </div>
 
           <div class="flex justify-between items-center text-sm bg-[#EBF0EC] p-3.5 rounded-xl border border-[#D5DDD7]">
             <span class="font-serif text-[#4A5E4F] flex items-center gap-2 font-bold">🌸 The Poruwa Ceremony</span>
-            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-3 py-1 rounded-md shadow-sm">10:30 AM</span>
+            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-2.5 py-1.5 rounded-md shadow-sm min-w-[78px] text-center">10:30 AM</span>
           </div>
 
           <div class="flex justify-between items-center text-sm bg-[#EBF0EC] p-3.5 rounded-xl border border-[#D5DDD7]">
             <span class="font-serif text-[#4A5E4F] flex items-center gap-2 font-bold">🥂 A Toast To Us (Cake & Champagne)</span>
-            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-3 py-1 rounded-md shadow-sm">11:00 AM</span>
+            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-2.5 py-1.5 rounded-md shadow-sm min-w-[78px] text-center">11:00 AM</span>
           </div>
 
           <div class="flex justify-between items-center text-sm bg-[#EBF0EC] p-3.5 rounded-xl border border-[#D5DDD7]">
             <span class="font-serif text-[#4A5E4F] flex items-center gap-2 font-bold">🍸 The Wedding Bar</span>
-            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-3 py-1 rounded-md shadow-sm">12:00 PM</span>
+            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-2.5 py-1.5 rounded-md shadow-sm min-w-[78px] text-center">12:00 PM</span>
           </div>
 
           <div class="flex justify-between items-center text-sm bg-[#EBF0EC] p-3.5 rounded-xl border border-[#D5DDD7]">
             <span class="font-serif text-[#4A5E4F] flex items-center gap-2 font-bold">🍽️ Lunch</span>
-            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-3 py-1 rounded-md shadow-sm">1:00 PM</span>
+            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-2.5 py-1.5 rounded-md shadow-sm min-w-[78px] text-center">1:00 PM</span>
           </div>
 
           <div class="flex justify-between items-center text-sm bg-[#EBF0EC] p-3.5 rounded-xl border border-[#D5DDD7]">
             <span class="font-serif text-[#4A5E4F] flex items-center gap-2 font-bold">✨ Going Away</span>
-            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-3 py-1 rounded-md shadow-sm">3:30 PM</span>
+            <span class="font-bold text-[#3A4A3E] text-xs bg-white px-2.5 py-1.5 rounded-md shadow-sm min-w-[78px] text-center">3:30 PM</span>
           </div>
         </div>
       </div>
@@ -621,8 +624,12 @@
       openEnvelope();
     });
 
+    // Start buffer and preload of video right away on page load
     window.addEventListener('load', () => {
       checkGuestName();
+      if (introVideo) {
+        introVideo.load();
+      }
     });
 
     // 4. Live Countdown (Target: Jan 21, 2027, 08:30 AM)
